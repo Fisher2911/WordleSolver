@@ -1,15 +1,18 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class GuessWord {
 
-    private static final int EXACT_SCORE = 500;
-    private static final int MATCH_SCORE = 100;
-    private static final int DUPLICATE_SCORE = -50;
+//    private static final int EXACT_SCORE = 200;
+//    private static final int MATCH_SCORE = 100;
+    private static final int DUPLICATE_SCORE = -1000;
 
+    private final Map<Word, Integer> wordScores = new HashMap<>();
     private final int size;
-    final char[] chars;
+    private final char[] chars;
     private final WordGuesses wordGuesses;
 
     public GuessWord(final int size) {
@@ -37,7 +40,7 @@ public class GuessWord {
                 if (!this.wordGuesses.isExact(wordChar, i)) return false;
             }
             if (this.wordGuesses.isNo(wordChar, i)) return false;
-           checkContained.add(wordChar);
+            checkContained.add(wordChar);
         }
         return this.wordGuesses.containsAll(checkContained);
     }
@@ -58,7 +61,9 @@ public class GuessWord {
         return matching;
     }
 
-    public int score(final Word word, final List<Character> scores) {
+    public int score(final Word word, final List<Character> scores, final int doubleIndex) {
+        final Integer cached = this.wordScores.get(word);
+        if (cached != null) return cached;
         final List<Integer> exact = this.findExactMatching(word);
         final List<Integer> matching = this.findExactMatching(word);
 
@@ -75,17 +80,32 @@ public class GuessWord {
             }
             if (used.contains(c)) continue;
             used.add(c);
-            score += scores.size() - scores.indexOf(c);
+            final int index = scores.indexOf(c);
+            final int size = scores.size();
+            int add = size - scores.indexOf(c);
+            if (doubleIndex >= index) add *= 2;
+            score += add;
         }
-        return exact.size() * EXACT_SCORE + matching.size() * MATCH_SCORE + score;
+        final int found = score;
+        this.wordScores.put(word, found);
+        return found;
     }
 
-    @Override
-    public String toString() {
-        return new String(this.chars);
+    public char[] getChars() {
+        return chars;
     }
 
     public WordGuesses getWordGuesses() {
         return wordGuesses;
     }
+
+    @Override
+    public String toString() {
+        return "GuessWord{" +
+                "size=" + size +
+                ", chars=" + Arrays.toString(chars) +
+                ", wordGuesses=" + wordGuesses +
+                '}';
+    }
+
 }

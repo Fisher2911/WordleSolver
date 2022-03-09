@@ -1,4 +1,5 @@
 import java.util.EnumMap;
+import java.util.Objects;
 import java.util.Set;
 
 public class Guesses {
@@ -21,5 +22,26 @@ public class Guesses {
 
     public SetMultimap<Guess, Character> getGuesses() {
         return guesses;
+    }
+
+    @Override
+    public String toString() {
+        return "Guesses{" +
+                "index=" + index +
+                ", guesses=" + guesses +
+                '}';
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        final Guesses guesses1 = (Guesses) o;
+        return index == guesses1.index && Objects.equals(guesses, guesses1.guesses);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(index, guesses);
     }
 }

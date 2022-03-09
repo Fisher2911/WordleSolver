@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class WordGuesses {
 
@@ -69,5 +70,27 @@ public class WordGuesses {
 
     public List<Character> getContains() {
         return this.contains;
+    }
+
+    @Override
+    public String toString() {
+        return "WordGuesses{" +
+                "length=" + length +
+                ", guessesMap=" + guessesMap +
+                ", contains=" + contains +
+                '}';
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        final WordGuesses that = (WordGuesses) o;
+        return length == that.length && Objects.equals(guessesMap, that.guessesMap) && Objects.equals(contains, that.contains);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(length, guessesMap, contains);
     }
 }

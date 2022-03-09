@@ -1,6 +1,7 @@
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -11,6 +12,10 @@ public class SetMultimap<K, V> {
 
     public SetMultimap(final Map<K, Set<V>> map, final Supplier<Set<V>> supplier) {
         this.map = map;
+        if (supplier == null) {
+            this.supplier = HashSet::new;
+            return;
+        }
         this.supplier = supplier;
     }
 
@@ -19,6 +24,7 @@ public class SetMultimap<K, V> {
     }
 
     public Set<V> get(final K key) {
+        if (key == null) return new HashSet<>();
         Set<V> set = this.map.get(key);
         if (set == null) {
             set = supplier.get();
@@ -54,5 +60,21 @@ public class SetMultimap<K, V> {
         return "SetMultimap{" +
                 "map=" + map +
                 '}';
+    }
+
+    public Set<Map.Entry<K, Set<V>>> entries() {
+        return this.map.entrySet();
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        final SetMultimap<?, ?> that = (SetMultimap<?, ?>) o;
+        return Objects.equals(map, that.map);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(map);
     }
 }

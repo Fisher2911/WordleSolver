@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +53,15 @@ public class Word {
         return this.toList().containsAll(list);
     }
 
+    public boolean containsAtLeast(List<Character> list, final int amount) {
+        int totalMatching = 0;
+        final List<Character> toList = this.toList();
+        for (char c : list) {
+            if (toList.contains(c)) totalMatching++;
+        }
+        return totalMatching >= amount;
+    }
+
     public List<Character> toList() {
         final List<Character> list = new ArrayList<>();
         for (final char c : this.chars) {
@@ -63,5 +73,18 @@ public class Word {
     @Override
     public String toString() {
         return new String(this.chars);
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        final Word word = (Word) o;
+        return Arrays.equals(chars, word.chars);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(chars);
     }
 }

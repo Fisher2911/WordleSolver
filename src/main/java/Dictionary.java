@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -7,17 +9,19 @@ import java.util.stream.Collectors;
 
 public class Dictionary {
 
-    private final Set<Word> words;
+    private final Set<Word> wordleWords;
+    private final Set<Word> allWords;
     private final Map<Character, Integer> charOccurrences;
 
-    public Dictionary(final Set<Word> words) {
-        this.words = words;
+    public Dictionary(final Set<Word> wordleWords, final Set<Word> allWords) {
+        this.wordleWords = wordleWords;
+        this.allWords = allWords;
         this.charOccurrences = this.findMostCommon();
     }
 
     private Map<Character, Integer> findMostCommon() {
         final Map<Character, Integer> chars = new HashMap<>();
-        for (final Word word : this.words) {
+        for (final Word word : this.wordleWords) {
             final var map = word.getCharOccurrences();
             for (final var entry : map.entrySet()) {
                 final char c = entry.getKey();
@@ -44,15 +48,19 @@ public class Dictionary {
         return charOccurrences;
     }
 
-    public Set<Word> getWords() {
-        return words;
+    public Set<Word> getWordleWords() {
+        return wordleWords;
     }
 
-    public List<Word> sortByScore(final GuessWord guessWord) {
-        final List<Word> words = new ArrayList<>(this.words);
+    public Set<Word> getAllWords() {
+        return allWords;
+    }
+
+    public List<Word> sortByScore(final GuessWord guessWord, final int doubleIndex) {
+        final List<Word> words = new ArrayList<>(this.wordleWords);
         final List<Character> common = this.getSortedChars(this.getCommonCharsWithGuess(guessWord));
         words.removeIf(word -> !guessWord.isPossible(word));
-        words.sort((o1, o2) -> Integer.compare(guessWord.score(o2, common), guessWord.score(o1, common)));
+        words.sort((o1, o2) -> Integer.compare(guessWord.score(o2, common, doubleIndex), guessWord.score(o1, common, doubleIndex)));
         return words;
     }
 
@@ -66,7 +74,7 @@ public class Dictionary {
 
     private Map<Character, Integer> getCommonCharactersWithOthers(final List<Character> characters) {
         final Map<Character, Integer> map = new HashMap<>();
-        for (final Word word : this.words) {
+        for (final Word word : this.wordleWords) {
             if (!word.containsAll(characters)) continue;
             final List<Character> chars = word.toList();
             for (final char c : chars) {
@@ -78,15 +86,19 @@ public class Dictionary {
         return map;
     }
 
-    public List<Word> getTopLikely(final GuessWord guessWord) {
-        return this.getTopLikely(guessWord, -1);
+    public List<Word> getTopLikely(final GuessWord guessWord, final int doubleIndex) {
+        return this.getTopLikely(guessWord, -1, doubleIndex);
     }
 
-    public List<Word> getTopLikely(final GuessWord guessWord, final int top) {
-        final List<Word> words = this.sortByScore(guessWord);
+    public List<Word> getTopLikely(final GuessWord guessWord, final int top, final int doubleIndex) {
+        final List<Word> words = this.sortByScore(guessWord, doubleIndex);
+        for (final Word word : words) {
+            if (Arrays.equals(word.getChars(), guessWord.getChars())) throw new IllegalStateException(words + " : " + guessWord + " cannot be equal!");
+        }
         if (top == -1) return words;
         final int size = words.size();
-        return words.subList(0, size - top);
+        final List<Word> list = words.subList(0, size - top);
+        return list;
     }
 
     public List<Word> getBestStartWords(final int length) {
@@ -97,14 +109,26 @@ public class Dictionary {
             topCharacters.add(characters.get(i));
         }
         final List<Word> topWords = new ArrayList<>();
-        for (final Word word : this.words) {
+        for (final Word word : this.wordleWords) {
             if (!word.containsAll(topCharacters)) continue;
             topWords.add(word);
         }
+        if (topWords.isEmpty()) return this.getBestStartWords(length -1);
+        topWords.sort((o1, o2) -> Integer.compare(this.scoreWord(o2, this.charOccurrences), this.scoreWord(o1, this.charOccurrences)));
         return topWords;
     }
 
-    private List<Character> getSortedChars() {
+    private int scoreWord(final Word word, final Map<Character, Integer> charOccurrences) {
+        int sum = 0;
+        for (char c : word.getChars()) {
+            final Integer num = charOccurrences.get(c);
+            if (num == null) continue;
+            sum += num;
+        }
+        return sum;
+    }
+
+    public List<Character> getSortedChars() {
        return this.getSortedChars(this.charOccurrences);
     }
 
